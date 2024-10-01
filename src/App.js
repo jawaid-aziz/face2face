@@ -1,13 +1,12 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import './App.css';
-import Lobby from './screens/Lobby.jsx';
 
 function App() {
   return (
     <div className="App">
       <Routes>
-        <Route path='/' element={<Lobby/>}/>
+        <Route path='/' element={}/>
       </Routes>
     </div>
   );
