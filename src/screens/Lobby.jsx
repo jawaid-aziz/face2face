@@ -1,13 +1,23 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
+import { useSocket } from '../context/SocketProvider';
 
 export const Lobby = () => {
     const [email,setEmail] = useState("");
     const [room,setRoom] = useState("");
 
+    const socket = useSocket();
+
     const handleSubmitForm = useCallback((e) => {
         e.preventDefault();
-        console.log({email, room});
-    }, [email, room]);
+        socket.emit('room:join', {email, room})
+    }, [email, room, socket]);
+
+    useEffect(() => {
+      socket.on('room:join', (data)=> {
+        console.log(`Data from BE ${data}`);
+      });
+    }, [socket]);
+
   return (
     <div>
         <h1>Lobby</h1>
