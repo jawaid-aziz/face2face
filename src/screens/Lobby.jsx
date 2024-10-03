@@ -12,11 +12,16 @@ export const Lobby = () => {
         socket.emit('room:join', {email, room})
     }, [email, room, socket]);
 
+    const handleJoinRoom = useCallback((data) => {
+      const {email, room } = data  
+    },[]);
+
     useEffect(() => {
-      socket.on('room:join', (data)=> {
-        console.log(`Data from BE ${data}`);
-      });
-    }, [socket]);
+      socket.on('room:join', handleJoinRoom);
+      return () => {
+        socket.off('room:join', handleJoinRoom);
+      }
+    }, [socket, handleJoinRoom]);
 
   return (
     <div>
