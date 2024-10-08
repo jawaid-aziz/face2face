@@ -8,6 +8,7 @@ export const RoomPage = () => {
     const socket = useSocket();
     const [remoteSocketId, setRemoteSocketId] = useState(null);
     const [myStream, setMyStream] = useState();
+    const [remoteStream, setRemoteStream] = useState();
 
     const handleUserJoined = useCallback( ({email,id}) => {
         console.log(`Email ${email} joined room`);
@@ -46,6 +47,16 @@ export const RoomPage = () => {
     const handleCallAccepted = useCallback( (from, ans) => {
       peer.setLocalDescription(ans);
       console.log('Call Accepted');
+      for (const track of myStream.getTracks()){
+        peer.peer.addTrack(track, myStream);
+      }
+    }, [myStream]);
+
+    useEffect(() => {
+      peer.peer.addEventListener('track', async ev => {
+        const remoteStream = ev.streams;
+        setRemoteStream(remoteStream);
+      });
     }, []);
 
     useEffect( () => {
@@ -75,6 +86,19 @@ export const RoomPage = () => {
             height="200px"
             width="200px"
             url={myStream}
+          />
+          </>
+        )}
+        {
+          remoteStream && (
+            <>
+            <h1>Remote Stream</h1>
+          <ReactPlayer
+            playing
+            muted
+            height="200px"
+            width="200px"
+            url={remoteStream}
           />
           </>
         )}
