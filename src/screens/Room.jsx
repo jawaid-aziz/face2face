@@ -16,31 +16,49 @@ export const RoomPage = () => {
 
     const handleCallUser = useCallback(async () => {
       try {
+
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: true,
           video: true,
         });
+
         const offer = await peer.getOffer();
-        socket.emit("user: call", {to: remoteSocketId, offer});
+        socket.emit("user:call", {to: remoteSocketId, offer});
         setMyStream(stream);
+
       } catch (error) {
         console.error('Error accessing media devices.', error);
       }
     }, [remoteSocketId, socket]);
     
-    const handleIncomingCall = useCallback( ({from,offer}) => {
+    const handleIncomingCall = useCallback( async({from,offer}) => {
+      setRemoteSocketId(from);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: true,
+      });
+      setMyStream(stream);
       console.log(`Incoming Call`, from, offer);
-    }, []);    
+      const ans = await peer.getAnswer(offer); 
+      socket.emit('call:accepted', {to:from, ans});
+    }, [socket]);
+
+    const handleCallAccepted = useCallback( (from, ans) => {
+      peer.setLocalDescription(ans);
+      console.log('Call Accepted');
+    }, []);
 
     useEffect( () => {
         socket.on('user:joined', handleUserJoined);
         socket.on("incoming:call", handleIncomingCall);
+        socket.on('call:accepted', handleCallAccepted);
 
         return () => { 
         socket.off('user:joined', handleUserJoined);
         socket.off("incoming:call", handleIncomingCall);
+        socket.off("call:accepted", handleCallAccepted);
       };
-    },  [socket, handleUserJoined, handleIncomingCall]);
+    },  [socket, handleUserJoined, handleIncomingCall, handleCallAccepted]);
 
   return (
     <div>
