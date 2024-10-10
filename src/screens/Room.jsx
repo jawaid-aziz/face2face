@@ -52,11 +52,22 @@ export const RoomPage = () => {
       }
     }, [myStream]);
 
+    const handleNegoNeeded = useCallback(async() => {
+      const offer = await peer.getOffer();
+      socket.emit('peer:nego:needed', {offer, to: remoteSocketId});
+    }, []);
+
+    useEffect(() => {
+      peer.peer.addEventListener('negotiationNeeded', handleNegoNeeded);
+      return () => { peer.peer.removeEventListener('negotiationNeeded', handleNegoNeeded)};
+    },[handleNegoNeeded]);
+
     useEffect(() => {
       peer.peer.addEventListener('track', async ev => {
         const remoteStream = ev.streams;
         setRemoteStream(remoteStream);
       });
+
     }, []);
 
     useEffect( () => {
