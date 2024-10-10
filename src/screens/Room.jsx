@@ -44,37 +44,41 @@ export const RoomPage = () => {
       socket.emit('call:accepted', {to:from, ans});
     }, [socket]);
 
-    const handleCallAccepted = useCallback( (from, ans) => {
-      peer.setLocalDescription(ans);
-      console.log('Call Accepted');
+    const sendStreams = useCallback(() => {
       for (const track of myStream.getTracks()){
         peer.peer.addTrack(track, myStream);
       }
     }, [myStream]);
 
+    const handleCallAccepted = useCallback( (from, ans) => {
+      peer.setLocalDescription(ans);
+      console.log('Call Accepted');
+      sendStreams();
+    }, [sendStreams]);
+
     const handleNegoNeeded = useCallback(async() => {
       const offer = await peer.getOffer();
       socket.emit('peer:nego:needed', {offer, to: remoteSocketId});
-    }, []);
+    }, [remoteSocketId, socket]);
 
     useEffect(() => {
       peer.peer.addEventListener('negotiationNeeded', handleNegoNeeded);
       return () => { peer.peer.removeEventListener('negotiationNeeded', handleNegoNeeded)};
     },[handleNegoNeeded]);
 
-    const handleNegoNeedIncoming = useCallback(({from, offer}) => {
-      const ans = peer.getAnswer(offer);
+    const handleNegoNeedIncoming = useCallback( async({from, offer}) => {
+      const ans = await peer.getAnswer(offer);
       socket.emit('peer:nego:done', {to:from, ans});
     }, [socket]);
 
     const handleNegoNeedFinal = useCallback(async({ans}) => {
-      await peer.setLocalDescription(ans)
+      await peer.setLocalDescription(ans);
     }, []);
 
     useEffect(() => {
       peer.peer.addEventListener('track', async ev => {
         const remoteStream = ev.streams;
-        setRemoteStream(remoteStream);
+        setRemoteStream(remoteStream[0]);
       });
 
     }, []);
@@ -101,6 +105,7 @@ export const RoomPage = () => {
     <div>
         <h1>Room</h1>
         <h4>{remoteSocketId ? "connected" : "No one in room"}</h4>
+        { myStream && <button onClick={sendStreams}>Send Stream</button>}
         {remoteSocketId && <button onClick={handleCallUser}>CALL</button>}
         {
           myStream && (
