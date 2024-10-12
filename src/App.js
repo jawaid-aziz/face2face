@@ -1,8 +1,8 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import './App.css';
-import { Lobby } from './screens/Lobby';
-import { RoomPage } from './screens/Room';
+import Lobby from './screens/Lobby';
+import RoomPage from './screens/Room';
 function App() {
   return (
     <div className="App">
